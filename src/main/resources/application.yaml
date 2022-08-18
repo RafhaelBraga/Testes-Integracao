@@ -1,0 +1,10 @@
+# server
+server:
+  port: 8080
+
+# datasource
+spring:   
+
+# profile 
+  profiles:
+    active: test 
