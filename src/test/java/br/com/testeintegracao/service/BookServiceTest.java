@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.tool.schema.internal.ExceptionHandlerHaltImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,38 +34,28 @@ public class BookServiceTest {
 	Book book01;
 	Book book02;
 	Book book03;
+	int idToBeNotFound = 4;
 	
 	@Before
 	public void setup() {
 		
-		book01 = new Book("book01");
-		book02 = new Book("book02");
-		book03 = new Book("book03");
+		book01 = new Book(1, "book01");
+		book02 = new Book(2, "book02");
+		book03 = new Book(3, "book03");
 		
 		List<Book> allBooks = Arrays.asList(book01, book02, book03);
 		
-		Mockito.when(bookRepository.findById(1)).thenReturn(Optional.of(book01));
-		Mockito.when(bookRepository.findById(2)).thenReturn(Optional.of(book02));
-		Mockito.when(bookRepository.findById(3)).thenReturn(Optional.of(book03));
+		Mockito.when(bookRepository.findById(book01.getId())).thenReturn(Optional.of(book01));
+		Mockito.when(bookRepository.findById(book02.getId())).thenReturn(Optional.of(book02));
+		Mockito.when(bookRepository.findById(book03.getId())).thenReturn(Optional.of(book03));
 		Mockito.when(bookRepository.findById(4)).thenReturn(Optional.empty());
 		Mockito.when(bookRepository.save(book01)).thenReturn(book01);
         Mockito.when(bookRepository.findAll()).thenReturn(allBooks);
+        
 	}
 	
 	@Test
-    public void whenValidId_thenBookShouldBeFound() {
-        Optional<Book> found = bookService.getBookById(1);
-        assertThat(found.get().getTitle()).isEqualTo("book01");
-    }
-
-	@Test
-    public void whenInvalidId_thenBookShouldNotBeFound() {
-        Optional<Book> found = bookService.getBookById(4);
-        assertThat(found).isEmpty();
-    }
-	
-	@Test
-    public void whenGetAllBooks_thenAllBookShouldBeFound() {
+    public void givenBookList_whenGetAllBooks_thenBookListShouldBeFound() {
         List<Book> found = bookService.getBooks();
         
         Mockito.verify(bookRepository, VerificationModeFactory.times(1)).findAll();
@@ -74,20 +65,47 @@ public class BookServiceTest {
     }
 	
 	@Test
-    public void whenCreateBook_thenBookShouldBeCreated() {
+    public void givenValidId_whenGetABookById_thenBookShouldBeFound() {
+        Optional<Book> found = bookService.getBookById(book01.getId());
+        assertThat(found.get().getTitle()).isEqualTo(book01.getTitle());
+        Mockito.verify(bookRepository, VerificationModeFactory.times(1)).findById(Mockito.anyInt());
+        Mockito.reset(bookRepository);
+    }
 
-		Book created = bookRepository.save(book01);
+
+	@Test
+    public void givenInvalidInput_whenGetBookById_thenBookShouldNotBeFound() {
+        Optional<Book> found = bookService.getBookById(4);
+        Mockito.verify(bookRepository, VerificationModeFactory.times(1)).findById(Mockito.anyInt());
+        assertThat(found).isEmpty();
+    }
+
+	@Test
+    public void givenValidInput_whenCreateBook_thenBookShouldBeCreated() {
+
+ 		Optional<Book> created = bookService.create(book01);
         
         Mockito.verify(bookRepository, VerificationModeFactory.times(1)).save(Mockito.any());
         Mockito.reset(bookRepository);
 
-        assertThat(created.getTitle()).isEqualTo(book01.getTitle());
+        assertThat(created.get().getTitle()).isEqualTo(book01.getTitle());
     }	
 	
 	@Test
-    public void whenModifyBook_thenBookShouldBeModified() {
+    public void givenInvalidInput_whenCreateBook_thenBookShouldNotBeCreated() {
+
+		Optional<Book> created = bookService.create(new Book());
+        
+        Mockito.verify(bookRepository, VerificationModeFactory.times(1)).save(Mockito.any());
+        Mockito.reset(bookRepository);
+
+        assertThat(created).isEmpty();
+    }	
+	
+	@Test
+    public void givenValidInput_whenModifyBook_thenBookShouldBeModified() {
 		
-		Book found = bookService.getBookById(1).get();
+		Book found = bookService.getBookById(book01.getId()).get();
 		found.setTitle("modified");
 		
 		found = bookService.modify(found);
@@ -100,13 +118,18 @@ public class BookServiceTest {
 	
 	
 	@Test
-    public void whenDeleteBook_thenBookShouldBeDeleted() {
+    public void givenValidInput_whenDeleteBook_thenBookShouldBeDeleted() {
 
 		bookService.delete(book01.getId());
-		Optional<Book> found = bookService.getBookById(book01.getId());
+        Mockito.verify(bookRepository, VerificationModeFactory.times(1)).deleteById(Mockito.any());
+    }
+	
+	@Test
+    public void givenInvalidInput_whenDeleteBook_thenExceptionShouldBeThrowed() {
+
+		bookService.delete(idToBeNotFound);
 
         Mockito.verify(bookRepository, VerificationModeFactory.times(1)).deleteById(Mockito.any());
-        assertThat(found).isEmpty();
-    }	
+    }
 	
 }

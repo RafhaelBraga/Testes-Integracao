@@ -23,8 +23,13 @@ public class BookService {
 		return bookRepository.findById(id);
 	}
 	
-	public Book create(Book book) {
-		return bookRepository.save(book);
+	public Optional<Book> create(Book book) {
+		try {
+			Book newBook = bookRepository.save(book);
+			return Optional.of(newBook);
+		} catch (Exception e) {
+			return Optional.empty();
+		}
 	}
 
 	public Book modify(Book book) {

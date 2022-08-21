@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,9 +57,50 @@ public class BookControllerRestTest {
         List<Book> found = bookRepository.findAll();
         assertThat(found).extracting(Book::getTitle).containsOnly("TestCreate");
     }
-	 
+	
 	@Test
-	public void givenBooks_whenGetBooks_thenStatus200AndTitleIsRight() throws Exception {
+    public void whenInvalidInput_thenStatus400AndDontCreateBook() throws IOException, Exception {
+        mvc.perform(
+        		post("/book/create")
+        		.contentType(MediaType.APPLICATION_JSON)
+        		.content("{\"fail\": \"a\"}"))
+        		.andExpect(status().is(400));
+
+        List<Book> found = bookRepository.findAll();
+        assertThat(found).extracting(Book::getTitle).isEmpty();
+    }
+	
+	@Test
+	public void givenBooks_whenGetBook_thenStatus200AndTitleIsRight() throws Exception {
+		
+		Book book = createTestBook("TestList01");
+		
+		mvc.perform(get("/book/{id}", book.getId())
+	      .contentType(MediaType.APPLICATION_JSON))
+	      .andExpect(status().isOk())
+	      .andExpect(jsonPath("title", is(book.getTitle())));//.andDo(print())
+	}
+	
+	@Test
+	public void givenNoBooks_whenGetBookList_thenStatus204() throws Exception {
+		
+		mvc.perform(get("/book/{id}", 1)
+	      .contentType(MediaType.APPLICATION_JSON))
+	      .andExpect(status().isNoContent())
+  		  .andExpect(content().string(""));
+	}
+	
+	@Test
+	public void givenNoBooks_whenGetBookList_thenStatus200AndNoBooksFound() throws Exception {
+		
+		mvc.perform(get("/book/list")
+	      .contentType(MediaType.APPLICATION_JSON))
+	      .andExpect(status().isOk())
+  		  .andExpect(content().string("[]"));
+	}	
+	
+	@Test
+	public void givenBooks_whenGetBookList_thenStatus200AndTitleIsRight() throws Exception {
 		
 		createTestBook("TestList01");
 		createTestBook("TestList02");
@@ -87,6 +129,18 @@ public class BookControllerRestTest {
 	}
 	
 	@Test
+	public void noGivenBooks_whenDeleteBookById_thenStatus204() throws Exception {
+		
+		
+		mvc.perform(delete("/book/delete/{id}", 1)
+				.contentType(MediaType.APPLICATION_JSON))
+		.andExpect(status().isNoContent());
+		
+		List<Book> found = bookRepository.findAll();
+        assertThat(found).isEmpty();
+	}
+	
+	@Test
 	public void givenBooks_whenPutBook_thenStatus200AndModifyBook() throws Exception {
 		
 		Book book = createTestBook("TestBook01");
@@ -99,6 +153,18 @@ public class BookControllerRestTest {
 
 		List<Book> found = bookRepository.findAll();
         assertThat(found).extracting(Book::getTitle).containsOnly("changedTitle");
+	}
+	
+	@Test
+	public void givenInvalidInput_whenPutBook_thenStatus204() throws Exception {
+		
+		mvc.perform(put("/book/put")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(JsonUtil.toJson(new Book("teste"))))
+				.andExpect(status().isNoContent());
+
+		List<Book> found = bookRepository.findAll();
+        assertThat(found).isEmpty();
 	}
 	
 	private Book createTestBook(String title) {
