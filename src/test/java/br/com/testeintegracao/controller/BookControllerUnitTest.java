@@ -58,7 +58,7 @@ public class BookControllerUnitTest {
 
         given(bookService.create(Mockito.any())).willReturn(Optional.of(book));
         
-        mvc.perform(post("/book/create")
+        mvc.perform(post("/book")
         		.contentType(MediaType.APPLICATION_JSON)
         		.content(JsonUtil.toJson(book)))
         		.andExpect(status().isCreated())
@@ -72,7 +72,7 @@ public class BookControllerUnitTest {
     	
         given(bookService.create(Mockito.any())).willReturn(Optional.empty());
 
-        mvc.perform(post("/book/create")
+        mvc.perform(post("/book")
         		.contentType(MediaType.APPLICATION_JSON)
         		.content("{\"fail\": \"a\"}"))
         		.andExpect(status().isBadRequest());
@@ -88,7 +88,7 @@ public class BookControllerUnitTest {
     	List<Book> bookList = Arrays.asList(book01, book02);
     	
         given(bookService.getBooks()).willReturn(bookList);
-        mvc.perform(get("/book/list")
+        mvc.perform(get("/book")
         		.contentType(MediaType.APPLICATION_JSON))
         		.andExpect(status().isOk())
       	      	.andExpect(jsonPath("$[0].title", is("testBook01")))
@@ -134,7 +134,7 @@ public class BookControllerUnitTest {
         given(bookService.getBookById(book01.getId())).willReturn(Optional.of(book01));
         given(bookService.modify(Mockito.any())).willReturn(book01Modified);
         
-        mvc.perform(put("/book/put")
+        mvc.perform(put("/book")
         		.contentType(MediaType.APPLICATION_JSON)
         		.content(JsonUtil.toJson(book01Modified)))        		
         		.andExpect(status().isOk())
@@ -148,7 +148,7 @@ public class BookControllerUnitTest {
 
         given(bookService.getBookById(4)).willReturn(Optional.empty());
         
-        mvc.perform(put("/book/put")
+        mvc.perform(put("/book")
         		.contentType(MediaType.APPLICATION_JSON)
         		.content(JsonUtil.toJson(new Book())))        		
         		.andExpect(status().isNoContent())
@@ -162,7 +162,7 @@ public class BookControllerUnitTest {
     	Book bookToDelete = new Book(1, "deleteTest");
         given(bookService.getBookById(bookToDelete.getId())).willReturn(Optional.of(bookToDelete));
         
-        mvc.perform(delete("/book/delete/{id}", bookToDelete.getId())
+        mvc.perform(delete("/book/{id}", bookToDelete.getId())
         		.contentType(MediaType.APPLICATION_JSON))   		
         		.andExpect(status().isOk());
         
@@ -174,7 +174,7 @@ public class BookControllerUnitTest {
 
     	given(bookService.getBookById(1)).willReturn(Optional.empty());
         
-        mvc.perform(delete("/book/delete/{id}", 1)
+        mvc.perform(delete("/book/{id}", 1)
         		.contentType(MediaType.APPLICATION_JSON))   		
         		.andExpect(status().isNoContent());
         

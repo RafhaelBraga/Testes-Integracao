@@ -50,7 +50,7 @@ public class BookControllerRestTest {
     public void whenValidInput_thenCreateBook() throws IOException, Exception {
         Book book = new Book("TestCreate");
         mvc.perform(
-        		post("/book/create").
+        		post("/book").
         		contentType(MediaType.APPLICATION_JSON).
         		content(JsonUtil.toJson(book)));
 
@@ -61,7 +61,7 @@ public class BookControllerRestTest {
 	@Test
     public void whenInvalidInput_thenStatus400AndDontCreateBook() throws IOException, Exception {
         mvc.perform(
-        		post("/book/create")
+        		post("/book")
         		.contentType(MediaType.APPLICATION_JSON)
         		.content("{\"fail\": \"a\"}"))
         		.andExpect(status().is(400));
@@ -93,7 +93,7 @@ public class BookControllerRestTest {
 	@Test
 	public void givenNoBooks_whenGetBookList_thenStatus200AndNoBooksFound() throws Exception {
 		
-		mvc.perform(get("/book/list")
+		mvc.perform(get("/book")
 	      .contentType(MediaType.APPLICATION_JSON))
 	      .andExpect(status().isOk())
   		  .andExpect(content().string("[]"));
@@ -105,7 +105,7 @@ public class BookControllerRestTest {
 		createTestBook("TestList01");
 		createTestBook("TestList02");
 	    
-		mvc.perform(get("/book/list")
+		mvc.perform(get("/book")
 	      .contentType(MediaType.APPLICATION_JSON))
 	      .andExpect(status().isOk())//.andDo(print())
 	      .andExpect(jsonPath("$[0].title", is("TestList01")))
@@ -120,7 +120,7 @@ public class BookControllerRestTest {
 		@SuppressWarnings("unused")
 		Book book02 = createTestBook("TestBook02");
 		
-		mvc.perform(delete("/book/delete/{id}", book01.getId())
+		mvc.perform(delete("/book/{id}", book01.getId())
 				.contentType(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk());
 		
@@ -132,7 +132,7 @@ public class BookControllerRestTest {
 	public void noGivenBooks_whenDeleteBookById_thenStatus204() throws Exception {
 		
 		
-		mvc.perform(delete("/book/delete/{id}", 1)
+		mvc.perform(delete("/book/{id}", 1)
 				.contentType(MediaType.APPLICATION_JSON))
 		.andExpect(status().isNoContent());
 		
@@ -146,7 +146,7 @@ public class BookControllerRestTest {
 		Book book = createTestBook("TestBook01");
 		book.setTitle("changedTitle");
 		
-		mvc.perform(put("/book/put")
+		mvc.perform(put("/book")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(JsonUtil.toJson(book)))
 				.andExpect(status().isOk());
@@ -158,7 +158,7 @@ public class BookControllerRestTest {
 	@Test
 	public void givenInvalidInput_whenPutBook_thenStatus204() throws Exception {
 		
-		mvc.perform(put("/book/put")
+		mvc.perform(put("/book")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(JsonUtil.toJson(new Book("teste"))))
 				.andExpect(status().isNoContent());

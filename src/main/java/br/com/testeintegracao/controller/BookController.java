@@ -26,7 +26,7 @@ public class BookController {
 	@Autowired
 	private BookService bookService;
 	
-	@GetMapping("/list")
+	@GetMapping
 	public List<Book> getBookList() {
 		return bookService.getBooks();
 	}
@@ -40,7 +40,7 @@ public class BookController {
 		return ResponseEntity.noContent().build();
 	}
 	
-	@PostMapping("/create")
+	@PostMapping
 	public ResponseEntity<Book> createBook(@RequestBody Book book, UriComponentsBuilder uriBuilder) {		
 		Optional<Book> newBook = bookService.create(book);		
 		if(newBook.isPresent()) {
@@ -50,7 +50,7 @@ public class BookController {
 		return ResponseEntity.badRequest().build();		
 	}
 	
-	@PutMapping("/put")
+	@PutMapping
 	public ResponseEntity<Book> modifyBook(@RequestBody Book updatedBook) {
 		Optional<Book> bookToUpdate = bookService.getBookById(updatedBook.getId());
         if(bookToUpdate.isPresent()) {
@@ -60,8 +60,8 @@ public class BookController {
         return ResponseEntity.noContent().build();
 	}
 	
-	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<Book> deleteBook(@PathVariable("id") int id) {
+	@DeleteMapping("/{id}")
+	public ResponseEntity<?> deleteBook(@PathVariable("id") int id) {
 		Optional<Book> bookToDelete = bookService.getBookById(id);
 		if(bookToDelete.isPresent()) {
 			bookService.delete(id);
